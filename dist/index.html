@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="img/tuwr-sentinel.png">
+  <title>Tuwr-Sentinel | RAG Local</title>
+  <style>
+    :root {
+      --bg-color: #2e2e2e;
+      /* Fondo opaco mate (rango 2B2B2B - 3A3A3A) */
+      --panel-bg: rgba(220, 220, 225, 0.75);
+      /* Vidrio esmerilado gris claro */
+      --input-bg: rgba(245, 245, 245, 0.85);
+      /* Paneles de inputs translúcidos */
+      --text-color: #1a1a1a;
+      /* Carbón oscuro / Negro para legibilidad */
+      --text-muted: #4a4a4a;
+      /* Texto secundario apagado */
+      --accent-color: #111111;
+      /* Acento oscuro HUD */
+      --accent-hover: #000000;
+      /* Hover más oscuro */
+      --user-msg-bg: rgba(165, 132, 107, 0.85);
+      /* Burbuja del usuario, alineada con el color del header */
+      --border-color: rgba(0, 0, 0, 0.15);
+      /* Bordes sutiles */
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      /* Textura superpuesta holográfica/scanline */
+      background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.06) 2px, rgba(0, 0, 0, 0.06) 4px);
+      color: var(--text-color);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Cabecera y estado de carga */
+    header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem 1rem;
+      background-color: #A5846B;
+      /* Marrón claro, aún más opaco */
+      z-index: 10;
+      /* Estilo flotante casi ancho completo */
+      margin: 1rem;
+      /* Margen en todos los lados para efecto flotante */
+      border-radius: 16px;
+      /* Bordes redondeados */
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+      /* Sombra 3D pronunciada */
+      border: 1px solid rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      /* Tipografía de estilo antiguo */
+      font-size: 2.25rem;
+      font-weight: bold;
+      /* Título en negrita */
+      margin-bottom: 1rem;
+      letter-spacing: 0.5px;
+      text-transform: none;
+      /* Se quitan las mayúsculas forzadas */
+      color: #000;
+    }
+
+    .header-controls {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      gap: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .control-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .control-group label {
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.8rem;
+      color: #2d2d2d;
+    }
+
+    .header-btn {
+      padding: 0.35rem 0.75rem;
+      border-radius: 4px;
+      background: var(--input-bg);
+      color: #000;
+      border: 1px solid var(--border-color);
+      font-family: 'Courier New', Courier, "Liberation Mono", monospace;
+      font-weight: bold;
+      font-size: 0.9rem;
+      cursor: pointer;
+      outline: none;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    .header-btn:hover {
+      background: var(--border-color);
+    }
+
+    #status-indicator {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      font-family: 'Courier New', Courier, monospace;
+      font-weight: bold;
+    }
+
+    .progress-container {
+      width: 100%;
+      max-width: 400px;
+      background-color: rgba(0, 0, 0, 0.1);
+      border-radius: 4px;
+      margin: 0 auto;
+      height: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+    }
+
+    #progress-bar {
+      height: 100%;
+      width: 0%;
+      background-color: var(--accent-color);
+      transition: width 0.3s ease;
+      font-size: 9px;
+      line-height: 12px;
+      color: #fff;
+      text-align: center;
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    #chat-container {
+      max-width: 800px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .avatar {
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .message {
+      font-family: 'Courier New', Courier, "Liberation Mono", monospace;
+      padding: 1rem 1.25rem;
+      border-radius: 6px;
+      max-width: 85%;
+      line-height: 1;
+      word-wrap: break-word;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background-color: var(--user-msg-bg);
+      color: #000;
+      font-weight: bold;
+      border-bottom-right-radius: 0;
+    }
+
+    .message.assistant {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      align-self: flex-start;
+      background-color: var(--panel-bg);
+      border-bottom-left-radius: 0;
+      border: 1px solid var(--border-color);
+      color: #1a1a1a;
+      padding: 0.75rem 1rem;
+      /* Ajustamos el padding para el contenedor flex */
+    }
+
+    /* Hacemos que el mensaje de bienvenida ocupe el ancho completo del contenedor */
+    .message.assistant:first-child {
+      max-width: 100%;
+    }
+
+    /* Anulamos el padding para los mensajes de asistente que no son el de bienvenida */
+    .message.assistant:not(:first-child) {
+      padding: 1rem 1.25rem;
+    }
+
+    /* Área de entrada de texto */
+    footer {
+      padding: 1.5rem;
+      background-image: linear-gradient(180deg, rgba(46, 46, 46, 0), var(--bg-color) 40%);
+    }
+
+    .disclaimer-text {
+      max-width: 800px;
+      margin: 0.5rem auto 0 auto;
+      text-align: center;
+      font-size: 0.75rem;
+      color: white;
+    }
+
+    .input-wrapper {
+      max-width: 800px;
+      margin: 0 auto;
+      position: relative;
+      display: flex;
+      align-items: flex-end;
+      background-color: var(--input-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.5rem;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      transition: border-color 0.2s;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--accent-color);
+    }
+
+    #chat-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #000;
+      font-size: 1rem;
+      padding: 0.5rem;
+      resize: none;
+      outline: none;
+      font-family: 'Courier New', Courier, "Liberation Mono", monospace;
+      min-height: 44px;
+      max-height: 200px;
+    }
+
+    #chat-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    #send-button {
+      background-color: #A5846B;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-left: 0.5rem;
+    }
+
+    #send-button:hover:not(:disabled) {
+      background-color: var(--accent-hover);
+    }
+
+    #send-button:disabled {
+      background-color: var(--border-color);
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    /* Icono SVG para el botón de enviar */
+    #send-button svg {
+      width: 1.25rem;
+      height: 1.25rem;
+      fill: currentColor;
+    }
+
+    /* Estilos para el botón de detener */
+    #stop-button {
+      background-color: #cc0000;
+      /* Rojo oscuro místico */
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      width: 44px;
+      height: 44px;
+      display: none;
+      /* Oculto por defecto */
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      margin-left: 0.5rem;
+    }
+
+    #stop-button:hover {
+      background-color: #dc2626;
+    }
+
+    #stop-button svg {
+      width: 1.25rem;
+      height: 1.25rem;
+      fill: currentColor;
+    }
+
+    .attribution-footer {
+      padding: 0 1rem 1rem 1rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #cccccc;
+      /* Cambiado a blanco/gris claro para mejor contraste */
+      font-family: 'Courier New', Courier, monospace;
+    }
+
+    .attribution-footer a {
+      color: #d4d4d4;
+      text-decoration: underline;
+      text-decoration-style: dotted;
+    }
+  </style>
+  <script type="module" crossorigin src="./assets/index-pOtW113Z.js"></script>
+</head>
+
+<body>
+
+  <header>
+    <h1>Tuwr-Sentinel</h1>
+    <div class="header-controls">
+      <div class="control-group">
+        <label id="lang-label" for="lang-selector">Seleccionar Idioma</label>
+        <select id="lang-selector" class="header-btn">
+          <option value="es">Español</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <div class="control-group">
+        <label id="clear-label" for="clear-chat-button">Historial</label>
+        <button id="clear-chat-button" class="header-btn" title="Limpiar conversación">
+          🗑️ Limpiar
+        </button>
+      </div>
+    </div>
+    <div id="status-indicator">Iniciando sistema...</div>
+    <div class="progress-container">
+      <div id="progress-bar">0%</div>
+    </div>
+  </header>
+
+  <main>
+    <div id="chat-container">
+      <div class="message assistant">
+        <img src="img/tuwr-sentinel.png" alt="Sentinel Avatar" class="avatar">
+        <span id="welcome-message">
+          <p>¡Hola! Soy <b>Tuwr-Sentinel</b>, un <b>agente de IA</b> que opera localmente. Utilizo una arquitectura
+            <b>RAG</b> (<i>Retrieval-Augmented Generation</i>) para consultar una base de conocimiento vectorial con
+            información de <b>OWASP</b> y <b>MITRE</b>, y generar respuestas con el modelo <b>Qwen2.5-0.5B-Instruct</b>.
+          </p>
+          <p style="margin-top: 12px;">Puedes preguntarme, por ejemplo:</p>
+          <p>1) ¿Qué es una vulnerabilidad de <b>Inyección</b> según <b>OWASP Top 10</b>?</p>
+          <p>2) ¿De qué trata la vulnerabilidad <b>CWE-1021</b>?</p>
+        </span>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="input-wrapper">
+      <textarea id="chat-input" rows="1" placeholder="Escribe un mensaje..." disabled></textarea>
+      <button id="send-button" disabled aria-label="Enviar mensaje">
+        <svg xmlns="http://www.w3.org/O/svg/2000" viewBox="0 0 24 24">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+        </svg>
+      </button>
+      <button id="stop-button" aria-label="Detener generación">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+          <rect x="7" y="7" width="10" height="10"></rect>
+        </svg>
+      </button>
+    </div>
+    <p id="disclaimer" class="disclaimer-text"></p>
+  </footer>
+
+  <div class="attribution-footer">
+    <p id="footer-text">
+      Base de conocimiento derivada de <a href="https://owasp.org/" target="_blank" rel="noopener noreferrer">OWASP®</a>
+      y <a href="https://www.mitre.org/" target="_blank" rel="noopener noreferrer">MITRE®</a>.
+      Modelo de lenguaje: <a href="https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct" target="_blank"
+        rel="noopener noreferrer">Qwen2.5-0.5B-Instruct</a> © Qwen Team, Alibaba Group.
+      | Agente realizado por Strong Tower Apps™
+    </p>
+  </div>
+
+
+  <script>
+    const textarea = document.getElementById('chat-input');
+    textarea.addEventListener('input', function () {
+      this.style.height = 'auto';
+      this.style.height = (this.scrollHeight) + 'px';
+    });
+
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'disabled') {
+          textarea.disabled = document.getElementById('send-button').disabled;
+        }
+      });
+    });
+    observer.observe(document.getElementById('send-button'), { attributes: true });
+  </script>
+</body>
+
+</html>
