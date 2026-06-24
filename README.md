@@ -40,7 +40,7 @@ Esta versión es una demostración técnica interactiva que opera bajo una arqui
 
 Dado que este agente de IA opera de forma enteramente local, al abrir la aplicación por primera vez tu navegador web descargará los modelos directamente de los repositorios oficiales de **Hugging Face** a tu caché local:
 * **Origen de Confianza**: Todas las peticiones de descarga se realizan de forma transparente y segura mediante HTTPS hacia los servidores oficiales de Hugging Face (`cdn-lfs.huggingface.co`), el portal estándar de la industria para modelos de Machine Learning.
-* **Procesamiento 100% Local**: Una vez descargado el modelo, el navegador web lo compila e inicia el procesamiento matemático de inferencia en tu procesador (CPU) o tarjeta gráfica (GPU) mediante WebAssembly y WebGPU. **Tus datos e historial de chat nunca salen de tu dispositivo** y no se envían a ningún servidor externo de terceros.
+* **Procesamiento 100% Local**: Una vez descargado el modelo, el navegador web lo compila e inicia el procesamiento matemático de inferencia en tu procesador (CPU) o tarjeta gráfica (GPU) mediante WebAssembly y WebGPU. **Tus datos e historial de chat nunca salen de tu dispositivo para esta demo** y no se envían a ningún servidor externo de terceros.
 
 ---
 
@@ -54,7 +54,7 @@ Por si no deseas realizar la descarga inicial en tu dispositivo, puedes observar
 
 ## ⚠️ Nota Importante sobre Producción y Arquitectura a Escala
 
-Este proyecto es una **demostración conceptual (Proof of Concept)** que tiene como fin ilustrar la interacción en tiempo real de los componentes en un cliente estático local, sin depender de servidores backend costosos de mantener. 
+Este proyecto es una **demostración conceptual (Proof of Concept)** que tiene como fin ilustrar la interacción en tiempo real de los componentes en un cliente estático local, sin depender de servidores backend costosos para una demo. 
 
 **No se recomienda esta arquitectura local para proyectos empresariales o en producción real** debido a las limitaciones inherentes del cliente (tiempo de carga inicial al descargar el modelo, uso intensivo de la memoria RAM del navegador, variabilidad de hardware del usuario y dificultad para actualizar los datos del vector en tiempo real).
 
