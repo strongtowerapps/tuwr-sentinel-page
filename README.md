@@ -36,7 +36,7 @@ Esta versión es una demostración técnica interactiva que opera bajo una arqui
 
 ---
 
-## 🔒 Seguridad, Privacidad y Transparencia en la Descarga de Modelos
+## 🔒 Seguridad y Transparencia en la Descarga de Modelos
 
 Dado que este agente de IA opera de forma enteramente local, al abrir la aplicación por primera vez tu navegador web descargará los modelos directamente de los repositorios oficiales de **Hugging Face** a tu caché local:
 * **Origen de Confianza**: Todas las peticiones de descarga se realizan de forma transparente y segura mediante HTTPS hacia los servidores oficiales de Hugging Face (`cdn-lfs.huggingface.co`), el portal estándar de la industria para modelos de Machine Learning.
@@ -48,7 +48,7 @@ Dado que este agente de IA opera de forma enteramente local, al abrir la aplicac
 
 Por si no deseas realizar la descarga inicial en tu dispositivo, puedes observar la funcionalidad del agente en la siguiente grabación:
 
-<video src="./videos/tuwr-sentinel.mp4" controls width="100%"></video>
+![Video Demostrativo del Agente IA](./video/tuwr-sentinel.gif)
 
 ---
 
